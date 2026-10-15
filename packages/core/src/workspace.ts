@@ -229,6 +229,7 @@ export class Workspace {
 
   async exportData() {
     return {
+      companies: await this.list('companies'),
       profile: await this.profile(),
       knowledge: await this.list('knowledge'),
       jobs: await this.list('jobs'),
@@ -284,7 +285,7 @@ export class Workspace {
           changed = true;
         }
         metadata.source = source;
-      } else {
+      } else if (kind === 'interviews') {
         const transcript = await this.readSafe(join(directory, 'transcript.md'));
         if (metadata.transcriptFingerprint !== digest(transcript)) {
           metadata.messages = this.parseTranscript(transcript);
@@ -347,7 +348,7 @@ export class Workspace {
         digest(resume.source),
       ];
       delete metadata.source;
-    } else {
+    } else if (kind === 'interviews') {
       const interview = record as Interview;
       await this.atomicWrite(
         join(directory, 'transcript.md'),

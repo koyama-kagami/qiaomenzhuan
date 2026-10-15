@@ -8,7 +8,7 @@ import type { AIConfig } from '@nextoffer/ai';
 import { environmentConfig, model, interviewAction } from './ai-actions.ts';
 
 const repo = fileURLToPath(new URL('../../../', import.meta.url));
-const kinds: Kind[] = ['knowledge', 'jobs', 'resumes', 'interviews'];
+const kinds: Kind[] = ['companies', 'knowledge', 'jobs', 'resumes', 'interviews'];
 const mime: Record<string, string> = {
   '.html': 'text/html; charset=utf-8',
   '.js': 'text/javascript',

@@ -1,7 +1,7 @@
 import { AppError, resumeTemplate } from './types.ts';
 import type { DimensionName, Kind, Message, Profile, RecordMap, Review } from './types.ts';
 
-export const kinds: Kind[] = ['knowledge', 'jobs', 'resumes', 'interviews'];
+export const kinds: Kind[] = ['companies', 'knowledge', 'jobs', 'resumes', 'interviews'];
 export const safeId = /^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$/;
 const stringList = (value: unknown): string[] => {
   if (value === undefined) return [];
@@ -69,6 +69,26 @@ export function normalize<K extends Kind>(kind: K, value: Record<string, unknown
   };
   if (!safeId.test(base.id) || !Number.isInteger(base.revision) || base.revision < 1)
     throw new AppError('CORRUPT_RECORD', '记录基础字段无效');
+  if (kind === 'companies') {
+    const name = text('name').trim();
+    if (!name) throw new AppError('VALIDATION', '企业名称不能为空', 400);
+    const website = text('website').trim();
+    if (website) {
+      try {
+        if (!['http:', 'https:'].includes(new URL(website).protocol)) throw new Error();
+      } catch {
+        throw new AppError('VALIDATION', '官网地址必须为 HTTP 或 HTTPS 链接', 400);
+      }
+    }
+    return {
+      ...base,
+      name,
+      industry: text('industry'),
+      location: text('location'),
+      website,
+      notes: text('notes'),
+    } as RecordMap[K];
+  }
   if (kind === 'knowledge')
     return {
       ...base,

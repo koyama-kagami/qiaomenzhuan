@@ -23,6 +23,29 @@ async function rejectsCode(promise: Promise<unknown>, code: string) {
   );
 }
 
+test('companies persist independently, reject stale updates and export with the workspace', async () => {
+  await fixture(async (root, workspace) => {
+    const company = await workspace.save('companies', {
+      name: '示例科技',
+      industry: '软件',
+      location: '上海',
+      website: 'https://example.com',
+      notes: '产品团队',
+    });
+    assert.equal((await new Workspace(root).get('companies', company.id)).notes, '产品团队');
+    const updated = await workspace.save('companies', { ...company, notes: '已了解团队' });
+    await rejectsCode(workspace.save('companies', { ...company, notes: '过期修改' }), 'CONFLICT');
+    assert.equal((await workspace.exportData()).companies[0].notes, '已了解团队');
+    await rejectsCode(workspace.save('companies', { name: ' ' }), 'VALIDATION');
+    await rejectsCode(
+      workspace.save('companies', { name: '无效网址', website: 'javascript:alert(1)' }),
+      'VALIDATION',
+    );
+    await workspace.remove('companies', company.id, updated.revision);
+    assert.deepEqual(await workspace.list('companies'), []);
+  });
+});
+
 function minimalPdf(text = ''): Buffer {
   const stream = text ? `BT /F1 12 Tf 72 100 Td (${text}) Tj ET` : '';
   const objects = [

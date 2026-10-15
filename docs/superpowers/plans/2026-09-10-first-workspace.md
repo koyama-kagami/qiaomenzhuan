@@ -1,4 +1,4 @@
-# NextOffer 第一版实施计划
+# 敲门砖 第一版实施计划
 
 > **For agentic workers:** Use subagent-driven-development or executing-plans to implement task-by-task. Shared interfaces are defined in `docs/contracts.md`.
 

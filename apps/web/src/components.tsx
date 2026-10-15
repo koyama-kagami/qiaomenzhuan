@@ -1,5 +1,5 @@
 import { useEffect, useRef, cloneElement, isValidElement, type ReactNode } from 'react';
-import { X, ArrowUpRight, Plus } from 'lucide-react';
+import { X } from 'lucide-react';
 export function Modal({
   title,
   onClose,
@@ -58,51 +58,17 @@ export function Modal({
     </div>
   );
 }
-export function Empty({
-  title,
-  description,
-  action,
-  onAction,
-}: {
-  title: string;
-  description: string;
-  action?: string;
-  onAction?: () => void;
-}) {
+export function Empty({ title }: { title: string }) {
   return (
     <div className="empty">
-      <div className="empty-mark">
-        <ArrowUpRight size={30} strokeWidth={1.3} />
-      </div>
-      <h3>{title}</h3>
-      <p>{description}</p>
-      {action && (
-        <button className="primary" onClick={onAction}>
-          <Plus size={16} />
-          {action}
-        </button>
-      )}
+      <p>{title}</p>
     </div>
   );
 }
-export function Heading({
-  eyebrow,
-  title,
-  description,
-  children,
-}: {
-  eyebrow: string;
-  title: string;
-  description: string;
-  children?: ReactNode;
-}) {
+export function Heading({ title, children }: { title: string; children?: ReactNode }) {
   return (
     <header className="page-heading">
-      <div>
-        <p className="eyebrow">{eyebrow}</p>
-        <h1>{title}</h1>
-        <p className="page-description">{description}</p>
-      </div>
+      {title && <h1>{title}</h1>}
       <div className="heading-actions">{children}</div>
     </header>
   );

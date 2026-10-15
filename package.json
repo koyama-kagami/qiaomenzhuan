@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "个人求职工作台 · NextOffer",
+  "description": "敲门砖 · 个人求职小工具",
   "engines": {
     "node": ">=22.13.0"
   },

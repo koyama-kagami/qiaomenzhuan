@@ -25,7 +25,7 @@ const blank: Partial<Job> = {
   resumeId: '',
   resumeVersion: null,
 };
-export default function Jobs({ data, refresh, run, busy }: ViewProps) {
+export default function Jobs({ data, refresh, run, busy, embedded }: ViewProps) {
   const [editing, setEditing] = useState<Partial<Job> | null>(null),
     [selected, setSelected] = useState(''),
     [filter, setFilter] = useState('all'),
@@ -44,11 +44,7 @@ export default function Jobs({ data, refresh, run, busy }: ViewProps) {
     .sort((a, b) => a.date.localeCompare(b.date));
   return (
     <>
-      <Heading
-        eyebrow="MAKE YOUR NEXT MOVE"
-        title="每个机会，认真以待。"
-        description="从心仪岗位到下一份 Offer，清晰记录每一步。"
-      >
+      <Heading title={embedded ? '' : '招聘信息'}>
         <a className="button" href="https://www.zhipin.com/" target="_blank" rel="noreferrer">
           <Search size={16} />
           寻找岗位
@@ -64,7 +60,7 @@ export default function Jobs({ data, refresh, run, busy }: ViewProps) {
           <div className="jobs-filters">
             <div className="filter-pills">
               {[
-                ['all', '全部机会'],
+                ['all', '全部'],
                 ['saved', '待投递'],
                 ['interview', '面试中'],
                 ['offer', 'Offer'],
@@ -113,16 +109,7 @@ export default function Jobs({ data, refresh, run, busy }: ViewProps) {
               ))}
             </div>
           ) : (
-            <Empty
-              title={data.jobs.length ? '没有符合条件的岗位' : '下一站，从一个机会开始'}
-              description={
-                data.jobs.length
-                  ? '调整筛选或搜索词，查看其他机会。'
-                  : '保存岗位描述、投递时间和面试安排，让准备更有方向。'
-              }
-              action={!data.jobs.length ? '添加第一个岗位' : undefined}
-              onAction={() => setEditing({ ...blank })}
-            />
+            <Empty title={data.jobs.length ? '无匹配结果' : '暂无岗位'} />
           )}
         </section>
         <aside className="panel schedule">
@@ -130,7 +117,6 @@ export default function Jobs({ data, refresh, run, busy }: ViewProps) {
             <CalendarDays size={18} />
             <h2>日程与截止</h2>
           </div>
-          <p className="muted">把重要的时间留在眼前。</p>
           {events.length ? (
             <div className="timeline">
               {events.map((item, i) => (
@@ -156,11 +142,7 @@ export default function Jobs({ data, refresh, run, busy }: ViewProps) {
               ))}
             </div>
           ) : (
-            <p className="schedule-empty">
-              还没有日程。
-              <br />
-              为岗位设置截止日期或面试时间，安排会出现在这里。
-            </p>
+            <p className="schedule-empty">暂无日程</p>
           )}
         </aside>
       </div>
@@ -240,6 +222,11 @@ export default function Jobs({ data, refresh, run, busy }: ViewProps) {
               });
             }}
           >
+            <datalist id="company-names">
+              {data.companies.map((c) => (
+                <option key={c.id} value={c.name} />
+              ))}
+            </datalist>
             <div className="form-grid">
               {[
                 ['company', '公司'],
@@ -251,6 +238,7 @@ export default function Jobs({ data, refresh, run, busy }: ViewProps) {
                   <input
                     required={key === 'company' || key === 'title'}
                     type={key === 'url' ? 'url' : 'text'}
+                    list={key === 'company' ? 'company-names' : undefined}
                     value={String(editing[key as keyof Job] || '')}
                     onChange={(e) => setEditing({ ...editing, [key]: e.target.value })}
                   />

@@ -1,9 +1,10 @@
 import Diff from './ResumeDiff';
+import ResumeStack from './ResumeStack';
 import { useEffect, useState } from 'react';
-import { Plus, Save, FileText, Sparkles, Undo2, Check, X, Code2, Download } from 'lucide-react';
+import { Plus, Save, FileText, Undo2, Code2, Download } from 'lucide-react';
 import type { RecordMap } from '@nextoffer/core';
 import { api, save, type ViewProps } from '../api';
-import { Heading, Empty, Field, Modal } from '../components';
+import { Heading, Field, Modal } from '../components';
 const template =
   '\\documentclass[UTF8,a4paper,11pt]{ctexart}\n\\usepackage[margin=2cm]{geometry}\n\\pagestyle{empty}\n\\begin{document}\n\\begin{center}\n{\\LARGE 你的姓名}\\\\[6pt]\n邮箱 · 电话 · 所在城市\n\\end{center}\n\\section*{教育经历}\n学校 · 专业 · 毕业时间\n\\section*{项目经历}\n项目名称：描述你的职责、行动与成果。\n\\section*{技能}\n列出与目标岗位相关的技能。\n\\end{document}\n';
 export default function Resumes(props: ViewProps) {
@@ -11,15 +12,14 @@ export default function Resumes(props: ViewProps) {
   const [selected, setSelected] = useState(''),
     [creating, setCreating] = useState(false),
     [title, setTitle] = useState('');
-  const resume = data.resumes.find((r) => r.id === selected) || data.resumes[0];
+  const resume = data.resumes.find((r) => r.id === selected);
+  useEffect(() => {
+    props.onSelectionChange?.(resume?.id || '');
+  }, [resume?.id, props.onSelectionChange]);
   const allowSwitch = () => !props.dirty || window.confirm('简历有未保存的修改，确定放弃并继续？');
   return (
     <>
-      <Heading
-        eyebrow="TELL YOUR STORY WELL"
-        title="把经历，写成下一步。"
-        description="在源码与预览之间打磨简历，每一次修改都有迹可循。"
-      >
+      <Heading title="简历">
         <button className="primary" onClick={() => setCreating(true)}>
           <Plus size={17} />
           新建简历
@@ -28,6 +28,13 @@ export default function Resumes(props: ViewProps) {
       {resume ? (
         <>
           <div className="resume-selector">
+            <button
+              onClick={() => {
+                if (allowSwitch()) setSelected('');
+              }}
+            >
+              返回简历
+            </button>
             <label>
               当前简历
               <select
@@ -49,14 +56,11 @@ export default function Resumes(props: ViewProps) {
           <Editor key={`${resume.id}-${resume.revision}`} resume={resume} {...props} />
         </>
       ) : (
-        <section className="panel">
-          <Empty
-            title="一份简历，讲清你的价值"
-            description="从中文 LaTeX 模板开始，保留每一版，为不同机会认真调整。"
-            action="创建第一份简历"
-            onAction={() => setCreating(true)}
-          />
-        </section>
+        <ResumeStack
+          resumes={data.resumes}
+          onOpen={setSelected}
+          onCreate={() => setCreating(true)}
+        />
       )}
       {creating && (
         <Modal title="新建简历" onClose={() => setCreating(false)}>
@@ -76,12 +80,11 @@ export default function Resumes(props: ViewProps) {
             <Field label="简历名称">
               <input
                 required
-                placeholder="例如：后端开发 · 秋招"
+                placeholder="简历名称"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
               />
             </Field>
-            <p className="hint">将创建一份可编辑的中文 LaTeX 模板。</p>
             <div className="modal-actions">
               <button disabled={busy} className="primary">
                 创建简历
@@ -95,15 +98,12 @@ export default function Resumes(props: ViewProps) {
 }
 function Editor({
   resume,
-  data,
   refresh,
   run,
   busy,
   onDirtyChange,
 }: { resume: RecordMap['resumes'] } & ViewProps) {
   const [source, setSource] = useState(resume.source),
-    [instruction, setInstruction] = useState(''),
-    [proposal, setProposal] = useState(''),
     [undo, setUndo] = useState<string[]>([]),
     [versions, setVersions] = useState<{ version: number; source: string }[]>([]),
     [comparison, setComparison] = useState(''),
@@ -138,7 +138,7 @@ function Editor({
             <div>
               <button
                 aria-label="撤销修改"
-                title="撤销最近一次采纳或版本切换"
+                title="撤销版本切换"
                 disabled={!undo.length}
                 onClick={() => {
                   setSource(undo[undo.length - 1]);
@@ -243,12 +243,8 @@ function Editor({
             ) : (
               <div className="pdf-placeholder">
                 <FileText size={40} strokeWidth={1} />
-                <h3>看见简历的最终样子</h3>
-                <p>
-                  保存源码后点击「编译预览」。
-                  <br />
-                  需要本机已安装 XeLaTeX。
-                </p>
+                <h3>PDF 预览</h3>
+
                 {changed && <span className="hint">先保存当前修改，即可编译。</span>}
               </div>
             )
@@ -257,69 +253,12 @@ function Editor({
               {comparison ? (
                 <Diff before={comparison} after={source} />
               ) : (
-                <p className="muted">选择左下方的历史版本，查看与当前源码的差异。</p>
+                <p className="muted">选择历史版本</p>
               )}
             </div>
           )}
         </section>
       </div>
-      <section className="panel resume-ai">
-        <div className="panel-heading">
-          <Sparkles size={18} />
-          <h2>让表达再准确一点</h2>
-        </div>
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            void run(async () => {
-              const result = await api<{ source: string }>('/ai/resume', { source, instruction });
-              setProposal(result.source);
-            });
-          }}
-        >
-          <input
-            aria-label="简历修改要求"
-            required
-            placeholder="例如：突出项目中的个人贡献，保留真实经历，不添加未经证实的数字"
-            value={instruction}
-            onChange={(e) => setInstruction(e.target.value)}
-          />
-          <button disabled={busy} className="primary">
-            <Sparkles size={15} />
-            生成修改建议
-          </button>
-        </form>
-        <p className="hint">
-          {data.ai.configured
-            ? `由 ${data.ai.model} 生成建议，确认后才会修改源码。`
-            : '请先在「模型设置」连接自己的模型。建议经你确认后才会修改源码。'}
-        </p>
-        {proposal && (
-          <div className="proposal">
-            <div className="panel-heading">
-              <h3>修改建议</h3>
-              <div className="button-row">
-                <button onClick={() => setProposal('')}>
-                  <X size={15} />
-                  拒绝
-                </button>
-                <button
-                  className="primary"
-                  onClick={() => {
-                    setUndo([...undo, source]);
-                    setSource(proposal);
-                    setProposal('');
-                  }}
-                >
-                  <Check size={15} />
-                  采纳到编辑器
-                </button>
-              </div>
-            </div>
-            <Diff before={source} after={proposal} />
-          </div>
-        )}
-      </section>
     </>
   );
 }

@@ -17,7 +17,7 @@ test('CLI persists records, returns machine JSON, and does not initialize on hel
   try {
     const help = run('help');
     assert.equal(help.status, 0);
-    assert.match(JSON.parse(help.stdout).data.help, /NextOffer/);
+    assert.match(JSON.parse(help.stdout).data.help, /敲门砖/);
     await assert.rejects(access(join(root, 'jobs')));
     const init = run('init');
     assert.equal(init.status, 0, init.stderr);

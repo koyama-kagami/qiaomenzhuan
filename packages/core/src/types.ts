@@ -1,10 +1,17 @@
-export type Kind = 'knowledge' | 'jobs' | 'resumes' | 'interviews';
+export type Kind = 'companies' | 'knowledge' | 'jobs' | 'resumes' | 'interviews';
 type Base = {
   id: string;
   schemaVersion: 1;
   revision: number;
   createdAt: string;
   updatedAt: string;
+};
+export type Company = Base & {
+  name: string;
+  industry: string;
+  location: string;
+  website: string;
+  notes: string;
 };
 export type Knowledge = Base & { title: string; content: string; tags: string[] };
 export type JobStatus = 'saved' | 'applied' | 'test' | 'interview' | 'offer' | 'closed';
@@ -52,7 +59,13 @@ export type Profile = {
   updatedAt: string;
   revision: number;
 };
-export type RecordMap = { knowledge: Knowledge; jobs: Job; resumes: Resume; interviews: Interview };
+export type RecordMap = {
+  companies: Company;
+  knowledge: Knowledge;
+  jobs: Job;
+  resumes: Resume;
+  interviews: Interview;
+};
 export type SearchHit = {
   id: string;
   title: string;

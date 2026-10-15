@@ -1,13 +1,11 @@
-import type { Profile, RecordMap, Kind } from '@nextoffer/core';
+import type { RecordMap, Kind } from '@nextoffer/core';
 export type Bootstrap = {
   token: string;
   workspace: string;
-  profile: Profile;
-  knowledge: RecordMap['knowledge'][];
+  companies: RecordMap['companies'][];
   jobs: RecordMap['jobs'][];
   resumes: RecordMap['resumes'][];
   interviews: RecordMap['interviews'][];
-  ai: { baseUrl: string; model: string; configured: boolean };
 };
 let token = '';
 export async function api<T>(
@@ -37,6 +35,8 @@ export type ViewProps = {
   refresh: () => Promise<void>;
   run: <T>(fn: () => Promise<T>) => Promise<T | undefined>;
   busy: boolean;
+  onSelectionChange?: (id: string) => void;
+  embedded?: boolean;
   dirty?: boolean;
   onDirtyChange?: (dirty: boolean) => void;
 };

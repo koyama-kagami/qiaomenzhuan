@@ -5,7 +5,7 @@ import { basename, resolve } from 'node:path';
 import { Workspace, AppError, resumeTemplate, type Kind } from '@nextoffer/core';
 import { environmentConfig, model, interviewAction } from './ai-actions.ts';
 
-const help = `NextOffer · 下一站
+const help = `敲门砖 · 个人求职小工具
 
 用法：npm run cli -- <命令> [参数] [--workspace <目录>] [--json]
 
